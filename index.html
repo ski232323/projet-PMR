@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation par Temps - Collège</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #timer {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        #position {
+            font-weight: bold;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .fleche {
+            color: #4CAF50;
+            font-size: 20px;
+            margin: 0 5px;
+        }
+        select, input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Navigation par Temps</h1>
+        let tempsCumules = {};
+        let positionPrecedente = null;
+
+        // Fonction pour démarrer le chronomètre
+        document.getElementById("demarrer").addEventListener("click", function() {
+            const select = document.getElementById("itineraire");
+            const idItineraire = select.value;
+
+            if (!idItineraire) {
+                alert("Veuillez sélectionner un itinéraire.");
+                return;
+            }
+
+            itineraireSelectionne = itineraireData[idItineraire];
+            positionPrecedente = itineraireSelectionne[0].depart;
+            calculerTempsCumules();
+            document.getElementById("demarrer").disabled = true;
+            document.getElementById("arret").disabled = false;
+            document.getElementById("position").textContent = `Position estimée : ${positionPrecedente}`;
+            intervalId = setInterval(mettreAJourTimer, 1000);
+        });
+
+        // Fonction pour arrêter le chronomètre
+        document.getElementById("arret").addEventListener("click", function() {
+            clearInterval(intervalId);
+            document.getElementById("demarrer").disabled = false;
+            document.getElementById("arret").disabled = true;
+        });
+
+        // Fonction pour calculer les temps cumulés
+        function calculerTempsCumules() {
+            tempsCumules = {};
+            let tempsTotal = 0;
+            itineraireSelectionne.forEach(segment => {
+                tempsTotal += segment.temps;
+                tempsCumules[segment.arrivee] = tempsTotal;
+            });
+        }
+
+        // Fonction pour mettre à jour le timer et la position
+        function mettreAJourTimer() {
+            tempsEcoule += 1;
+            const minutes = Math.floor(tempsEcoule / 60);
+            const secondes = tempsEcoule % 60;
+            document.getElementById("timer").textContent = `Temps écoulé : ${minutes} min ${secondes} s`;
+
+            // Estimer la position
+            let positionEstimee = itineraireSelectionne[0].depart;
+            for (const [point, tempsCumule] of Object.entries(tempsCumules)) {
+                if (tempsEcoule / 60 <= tempsCumule) {
+                    positionEstimee = point;
+                    break;
+                }
+            }
+
+            // Afficher la flèche si la position a changé
+            if (positionEstimee !== positionPrecedente) {
+                document.getElementById("position").innerHTML = `
+                    Position estimée : ${positionPrecedente} <span class="fleche">→</span> ${positionEstimee}
+                `;
+                positionPrecedente = positionEstimee;
+            }
+        }
+    </script>
+</body>
+</html>
