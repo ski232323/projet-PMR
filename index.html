@@ -3,64 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigation par Temps - Collège</title>
+    <title>Navigation par Temps</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         h1 {
             color: #333;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+        select, button {
+            padding: 12px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
         }
         button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 15px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
-            margin: 5px 0;
         }
         button:hover {
             background-color: #45a049;
         }
         #timer {
             font-size: 24px;
-            margin: 10px 0;
+            margin: 20px 0;
         }
         #position {
-            font-weight: bold;
-            margin: 10px 0;
-            font-size: 18px;
-        }
-        .fleche {
-            color: #4CAF50;
             font-size: 20px;
-            margin: 0 5px;
+            margin: 20px 0;
         }
-        select, input {
-            padding: 8px;
-            margin: 5px 0;
-            width: 100%;
-            box-sizing: border-box;
+        #instruction-container {
+            margin: 30px 0;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .fleche-container {
+            font-size: 150px;
+            color: #4CAF50;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Navigation par Temps</h1>
+
+        <h3>Sélectionnez votre itinéraire</h3>
+        <select id="itineraire">
+            <option value="">-- Choix de l'itinéraire --</option>
+            <option value="bibliothèque-cafeteria">Bibliothèque → Cafétéria</option>
+            <option value="bibliothèque-toilettes">Bibliothèque → Toilettes PMR</option>
+            <option value="toilettes-techno">Toilettes PMR → Salle de Techno</option>
+        </select>
+
+        <button id="demarrer">Démarrer le trajet</button>
+        <button id="arret" disabled>Arrêter</button>
+
+        <div id="timer">Temps écoulé : 0 min 0 s</div>
+        <div id="position">Position estimée : Départ</div>
+
+        <div id="instruction-container">
+            <div id="instruction" class="fleche-container">↑</div>
+        </div>
+    </div>
+
+    <script>
+        // Base de données des itinéraires et segments
+        const itineraireData = {
+            "bibliothèque-cafeteria": [
+                { depart: "Bibliothèque", arrivee: "Salle 101", temps: 1.0, instruction: "Aller tout droit" },
+                { depart: "Salle 101", arrivee: "Ascenseur A", temps: 2.0, instruction: "Aller tout droit" },
+                { depart: "Ascenseur A", arrivee: "Cafétéria", temps: 1.5, instruction: "Aller tout droit" }
+            ],
+            "bibliothèque-toilettes": [
+                { depart: "Bibliothèque", arrivee: "Toilettes PMR", temps: 0.5, instruction: "Aller tout droit" }
+            ],
+            "toilettes-techno": [
+                { depart: "Toilettes PMR", arrivee: "Aller tout droit", temps: 0.333, instruction: "Aller tout droit" },
+                { depart: "Aller tout droit", arrivee: "Tourner à droite", temps: 0.083, instruction: "Tourner à droite" },
+                { depart: "Tourner à droite", arrivee: "Aller à gauche", temps: 0.167, instruction: "Aller à gauche" },
+                { depart: "Aller à gauche", arrivee: "Aller tout droit", temps: 1.0, instruction: "Aller tout droit" },
+                { depart: "Aller tout droit", arrivee: "Salle de Techno", temps: 0.0, instruction: "Vous êtes arrivé" }
+            ]
+        };
+
+        // Variables globales
+        let intervalId;
+        let tempsEcoule = 0;
+        let itineraireSelectionne = [];
         let tempsCumules = {};
         let positionPrecedente = null;
+        let instructionPrecedente = null;
 
         // Fonction pour démarrer le chronomètre
         document.getElementById("demarrer").addEventListener("click", function() {
@@ -74,10 +129,12 @@
 
             itineraireSelectionne = itineraireData[idItineraire];
             positionPrecedente = itineraireSelectionne[0].depart;
+            instructionPrecedente = itineraireSelectionne[0].instruction;
             calculerTempsCumules();
             document.getElementById("demarrer").disabled = true;
             document.getElementById("arret").disabled = false;
             document.getElementById("position").textContent = `Position estimée : ${positionPrecedente}`;
+            mettreAJourFleche(instructionPrecedente);
             intervalId = setInterval(mettreAJourTimer, 1000);
         });
 
@@ -98,6 +155,21 @@
             });
         }
 
+        // Fonction pour mettre à jour la flèche directionnelle
+        function mettreAJourFleche(instruction) {
+            let fleche;
+            if (instruction === "Aller tout droit") {
+                fleche = "↑";
+            } else if (instruction === "Tourner à droite") {
+                fleche = "→";
+            } else if (instruction === "Aller à gauche") {
+                fleche = "←";
+            } else {
+                fleche = "✓";
+            }
+            document.getElementById("instruction").textContent = fleche;
+        }
+
         // Fonction pour mettre à jour le timer et la position
         function mettreAJourTimer() {
             tempsEcoule += 1;
@@ -105,21 +177,24 @@
             const secondes = tempsEcoule % 60;
             document.getElementById("timer").textContent = `Temps écoulé : ${minutes} min ${secondes} s`;
 
-            // Estimer la position
+            // Estimer la position et l'instruction
             let positionEstimee = itineraireSelectionne[0].depart;
-            for (const [point, tempsCumule] of Object.entries(tempsCumules)) {
-                if (tempsEcoule / 60 <= tempsCumule) {
-                    positionEstimee = point;
+            let instructionEstimee = itineraireSelectionne[0].instruction;
+            for (let i = 0; i < itineraireSelectionne.length; i++) {
+                const segment = itineraireSelectionne[i];
+                if ((tempsEcoule / 60) <= tempsCumules[segment.arrivee]) {
+                    positionEstimee = segment.depart;
+                    instructionEstimee = segment.instruction;
                     break;
                 }
             }
 
-            // Afficher la flèche si la position a changé
-            if (positionEstimee !== positionPrecedente) {
-                document.getElementById("position").innerHTML = `
-                    Position estimée : ${positionPrecedente} <span class="fleche">→</span> ${positionEstimee}
-                `;
+            // Afficher la position et l'instruction si elles ont changé
+            if (positionEstimee !== positionPrecedente || instructionEstimee !== instructionPrecedente) {
+                document.getElementById("position").textContent = `Position estimée : ${positionEstimee}`;
+                mettreAJourFleche(instructionEstimee);
                 positionPrecedente = positionEstimee;
+                instructionPrecedente = instructionEstimee;
             }
         }
     </script>
