@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigation par Temps</title>
+    <title>Navigation par Temps - Salle Abbé Lehmann</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,19 +28,20 @@
         h1 {
             color: #333;
         }
-        select, button {
-            padding: 12px;
-            margin: 10px 0;
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 16px;
+        h2 {
+            color: #333;
         }
         button {
             background-color: #4CAF50;
             color: white;
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
         }
         button:hover {
             background-color: #45a049;
@@ -64,25 +65,32 @@
             font-size: 150px;
             color: #4CAF50;
         }
+        #obstacle {
+            font-weight: bold;
+            margin: 10px 0;
+            font-size: 16px;
+            color: #d32f2f;
+        }
+        .etape {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #1976d2;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Navigation par Temps</h1>
-
-        <h3>Sélectionnez votre itinéraire</h3>
-        <select id="itineraire">
-            <option value="">-- Choix de l'itinéraire --</option>
-            <option value="bibliothèque-cafeteria">Bibliothèque → Cafétéria</option>
-            <option value="bibliothèque-toilettes">Bibliothèque → Toilettes PMR</option>
-            <option value="toilettes-techno">Toilettes PMR → Salle de Techno</option>
-        </select>
+        <h2>Salle Abbé Lehmann → Salle de Techno</h2>
 
         <button id="demarrer">Démarrer le trajet</button>
         <button id="arret" disabled>Arrêter</button>
 
         <div id="timer">Temps écoulé : 0 min 0 s</div>
         <div id="position">Position estimée : Départ</div>
+        <div class="etape" id="etape">Étape : Prêt à démarrer</div>
+        <div id="obstacle"></div>
 
         <div id="instruction-container">
             <div id="instruction" class="fleche-container">↑</div>
@@ -90,22 +98,14 @@
     </div>
 
     <script>
-        // Base de données des itinéraires et segments
+        // Base de données des itinéraires et segments (uniquement Salle Abbé Lehmann → Salle de Techno)
         const itineraireData = {
-            "bibliothèque-cafeteria": [
-                { depart: "Bibliothèque", arrivee: "Salle 101", temps: 1.0, instruction: "Aller tout droit" },
-                { depart: "Salle 101", arrivee: "Ascenseur A", temps: 2.0, instruction: "Aller tout droit" },
-                { depart: "Ascenseur A", arrivee: "Cafétéria", temps: 1.5, instruction: "Aller tout droit" }
-            ],
-            "bibliothèque-toilettes": [
-                { depart: "Bibliothèque", arrivee: "Toilettes PMR", temps: 0.5, instruction: "Aller tout droit" }
-            ],
-            "toilettes-techno": [
-                { depart: "Toilettes PMR", arrivee: "Aller tout droit", temps: 0.333, instruction: "Aller tout droit" },
-                { depart: "Aller tout droit", arrivee: "Tourner à droite", temps: 0.083, instruction: "Tourner à droite" },
-                { depart: "Tourner à droite", arrivee: "Aller à gauche", temps: 0.167, instruction: "Aller à gauche" },
-                { depart: "Aller à gauche", arrivee: "Aller tout droit", temps: 1.0, instruction: "Aller tout droit" },
-                { depart: "Aller tout droit", arrivee: "Salle de Techno", temps: 0.0, instruction: "Vous êtes arrivé" }
+            "salle-abbe-lehmann": [
+                { depart: "Salle Abbé Lehmann", arrivee: "Tourner à droite", temps: 1.0, instruction: "Aller tout droit", obstacle: "Bouches d'égouts, portes" },
+                { depart: "Tourner à droite", arrivee: "Aller tout droit", temps: 0.2, instruction: "Tourner à droite", obstacle: "" },
+                 { depart: "Tourner à droite", arrivee: "Aller tout droit", temps: 0.2, instruction: "Aller tout droit", obstacle: "Ne pas serrer à droite car il y a des bancs" },
+                { depart: "Aller tout droit", arrivee: "Salle de Techno", temps: 0.333, instruction: "Suivre le chemin fluorescent", obstacle: "Suivre le chemin fluorescent" },
+                { depart: "Salle de Techno", arrivee: "Fin", temps: 0.333, instruction: "Aller tout droit", obstacle: "Gouttière" }
             ]
         };
 
@@ -116,24 +116,23 @@
         let tempsCumules = {};
         let positionPrecedente = null;
         let instructionPrecedente = null;
+        let obstaclePrecedent = null;
+        let etapePrecedente = null;
 
         // Fonction pour démarrer le chronomètre
         document.getElementById("demarrer").addEventListener("click", function() {
-            const select = document.getElementById("itineraire");
-            const idItineraire = select.value;
-
-            if (!idItineraire) {
-                alert("Veuillez sélectionner un itinéraire.");
-                return;
-            }
+            const idItineraire = "salle-abbe-lehmann";
 
             itineraireSelectionne = itineraireData[idItineraire];
             positionPrecedente = itineraireSelectionne[0].depart;
             instructionPrecedente = itineraireSelectionne[0].instruction;
+            obstaclePrecedent = itineraireSelectionne[0].obstacle;
             calculerTempsCumules();
             document.getElementById("demarrer").disabled = true;
             document.getElementById("arret").disabled = false;
             document.getElementById("position").textContent = `Position estimée : ${positionPrecedente}`;
+            document.getElementById("etape").textContent = `Étape : 1`;
+            document.getElementById("obstacle").textContent = obstaclePrecedent ? `Attention : ${obstaclePrecedent}` : '';
             mettreAJourFleche(instructionPrecedente);
             intervalId = setInterval(mettreAJourTimer, 1000);
         });
@@ -162,8 +161,8 @@
                 fleche = "↑";
             } else if (instruction === "Tourner à droite") {
                 fleche = "→";
-            } else if (instruction === "Aller à gauche") {
-                fleche = "←";
+            } else if (instruction === "Suivre le chemin fluorescent") {
+                fleche = "↓"; // Flèche vers le bas pour indiquer de regarder vers le sol
             } else {
                 fleche = "✓";
             }
@@ -177,24 +176,35 @@
             const secondes = tempsEcoule % 60;
             document.getElementById("timer").textContent = `Temps écoulé : ${minutes} min ${secondes} s`;
 
-            // Estimer la position et l'instruction
+            // Estimer la position, l'instruction et l'étape
             let positionEstimee = itineraireSelectionne[0].depart;
             let instructionEstimee = itineraireSelectionne[0].instruction;
+            let obstacleEstime = itineraireSelectionne[0].obstacle;
+            let etapeEstimee = 1;
+
+            let tempsCumule = 0;
             for (let i = 0; i < itineraireSelectionne.length; i++) {
                 const segment = itineraireSelectionne[i];
-                if ((tempsEcoule / 60) <= tempsCumules[segment.arrivee]) {
+                tempsCumule += segment.temps * 60; // Convertir en secondes
+                if (tempsEcoule <= tempsCumule) {
                     positionEstimee = segment.depart;
                     instructionEstimee = segment.instruction;
+                    obstacleEstime = segment.obstacle;
+                    etapeEstimee = i + 1;
                     break;
                 }
             }
 
-            // Afficher la position et l'instruction si elles ont changé
-            if (positionEstimee !== positionPrecedente || instructionEstimee !== instructionPrecedente) {
+            // Afficher la position, l'instruction, l'étape et les obstacles si elles ont changé
+            if (positionEstimee !== positionPrecedente || instructionEstimee !== instructionPrecedente || obstacleEstime !== obstaclePrecedent || etapeEstimee !== etapePrecedente) {
                 document.getElementById("position").textContent = `Position estimée : ${positionEstimee}`;
+                document.getElementById("etape").textContent = `Étape : ${etapeEstimee}`;
+                document.getElementById("obstacle").textContent = obstacleEstime ? `Attention : ${obstacleEstime}` : '';
                 mettreAJourFleche(instructionEstimee);
                 positionPrecedente = positionEstimee;
                 instructionPrecedente = instructionEstimee;
+                obstaclePrecedent = obstacleEstime;
+                etapePrecedente = etapeEstimee;
             }
         }
     </script>
