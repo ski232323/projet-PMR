@@ -1,0 +1,12 @@
+Nom du trajet : Salle Abbé Lehmann ==> Salle de techno
+étape 1  (1min):
+    - Aller tout droit (1min) puis tourner à droite
+    - obstacles : bouches d'égouts, portes 
+étape 2 (40s) :
+    - aller tout droit pendant 40s 
+    - Attention ne pas serrer à droite car présence de bancs
+étape 3 (50s): 
+- regarder vers le sol et suivre le chemin fluorescent(50s)
+étape 4 (20s):
+- aller tout droit 
+- attention gouttière
