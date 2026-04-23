@@ -101,10 +101,10 @@
         // Base de données des itinéraires et segments (uniquement Salle Abbé Lehmann → Salle de Techno)
         const itineraireData = {
             "salle-abbe-lehmann": [
-                { depart: "Salle Abbé Lehmann", arrivee: "Tourner à droite", temps: 1.0, instruction: "Aller tout droit", obstacle: "Bouches d'égouts, portes" },
-                { depart: "Tourner à droite", arrivee: "Aller tout droit", temps: 0.2, instruction: "Tourner à droite", obstacle: "" },
-                 { depart: "Tourner à droite", arrivee: "Aller tout droit", temps: 0.2, instruction: "Aller tout droit", obstacle: "Ne pas serrer à droite car il y a des bancs" },
-                { depart: "Aller tout droit", arrivee: "Salle de Techno", temps: 0.333, instruction: "Suivre le chemin fluorescent", obstacle: "Suivre le chemin fluorescent" },
+                { depart: "Salle Abbé Lehmann", arrivee: "Aller tout droit", temps: 1.0, instruction: "Aller tout droit", obstacle: "Bouches d'égouts, portes" },
+                { depart: "Aller tout droit", arrivee: "Tourner à droite", temps: 0.667, instruction: "Tourner à droite", obstacle: "" },
+                { depart: "Tourner à droite", arrivee: "Suivre le chemin fluorescent", temps: 0.833, instruction: "Aller tout droit", obstacle: "Ne pas serrer à droite car il y a des bancs" },
+                { depart: "Suivre le chemin fluorescent", arrivee: "Salle de Techno", temps: 0.333, instruction: "Suivre le chemin fluorescent", obstacle: "" },
                 { depart: "Salle de Techno", arrivee: "Fin", temps: 0.333, instruction: "Aller tout droit", obstacle: "Gouttière" }
             ]
         };
@@ -118,6 +118,13 @@
         let instructionPrecedente = null;
         let obstaclePrecedent = null;
         let etapePrecedente = null;
+
+        // Fonction pour parler
+        function parler(texte) {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(texte);
+            synth.speak(utterance);
+        }
 
         // Fonction pour démarrer le chronomètre
         document.getElementById("demarrer").addEventListener("click", function() {
@@ -134,6 +141,7 @@
             document.getElementById("etape").textContent = `Étape : 1`;
             document.getElementById("obstacle").textContent = obstaclePrecedent ? `Attention : ${obstaclePrecedent}` : '';
             mettreAJourFleche(instructionPrecedente);
+            parler(`Étape 1 : ${instructionPrecedente}. ${obstaclePrecedent ? `Attention aux obstacles : ${obstaclePrecedent}.` : ''}`);
             intervalId = setInterval(mettreAJourTimer, 1000);
         });
 
@@ -201,6 +209,7 @@
                 document.getElementById("etape").textContent = `Étape : ${etapeEstimee}`;
                 document.getElementById("obstacle").textContent = obstacleEstime ? `Attention : ${obstacleEstime}` : '';
                 mettreAJourFleche(instructionEstimee);
+                parler(`Étape ${etapeEstimee} : ${instructionEstimee}. ${obstacleEstime ? `Attention aux obstacles : ${obstacleEstime}.` : ''}`);
                 positionPrecedente = positionEstimee;
                 instructionPrecedente = instructionEstimee;
                 obstaclePrecedent = obstacleEstime;
