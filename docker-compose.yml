@@ -27,7 +27,7 @@ services:
     ports:
       - "8899:8888"
     environment:
-      - JUPYTER_TOKEN=${JUPYTER_TOKEN}  # Utilise une variable d'environnement
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN}
     command: >
       start-notebook.sh
       --NotebookApp.token='${JUPYTER_TOKEN}'
