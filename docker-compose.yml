@@ -15,7 +15,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M  # Limite à 256 Mo de RAM
+          memory: 256M
 
   jupyter:
     image: jupyter/minimal-notebook
@@ -27,10 +27,10 @@ services:
     ports:
       - "8899:8888"
     environment:
-      - JUPYTER_TOKEN=votre_token_securise
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN}  # Utilise une variable d'environnement
     command: >
       start-notebook.sh
-      --NotebookApp.token='votre_token_securise'
+      --NotebookApp.token='${JUPYTER_TOKEN}'
       --NotebookApp.password=''
       --NotebookApp.allow_root=True
       --ip=0.0.0.0
@@ -39,7 +39,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M  # Limite à 512 Mo de RAM
+          memory: 512M
 
 networks:
   app-network:
